@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import MapPicker from './MapPicker';
 import WhatsAppButton from './WhatsAppButton';
 import { calculateFare, formatCurrency, type FareSettings, type ServiceType } from '@/lib/fareCalculation';
@@ -15,6 +15,12 @@ interface FareCalculatorProps {
   settings: FareSettings;
 }
 
+interface TimeSlot {
+  hour: number;
+  available: number;
+  display: string;
+}
+
 export default function FareCalculator({ settings }: FareCalculatorProps) {
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dropoff, setDropoff] = useState<Location | null>(null);
@@ -22,6 +28,62 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
   const [passengers, setPassengers] = useState(1);
   const [serviceType, setServiceType] = useState<ServiceType>('ride-standard');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Date & Time
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [slotError, setSlotError] = useState<string | null>(null);
+
+  // Get minimum date (today)
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Get maximum date (30 days from now)
+  const getMaxDate = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30);
+    return maxDate.toISOString().split('T')[0];
+  };
+
+  // Fetch available slots when date changes
+  useEffect(() => {
+    if (!selectedDate) {
+      setAvailableSlots([]);
+      setSelectedHour(null);
+      return;
+    }
+
+    const fetchSlots = async () => {
+      setIsLoadingSlots(true);
+      setSlotError(null);
+      setSelectedHour(null);
+
+      try {
+        const response = await fetch(`/api/bookings?date=${selectedDate}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setAvailableSlots(data.slots);
+          if (data.slots.length === 0) {
+            setSlotError('No available slots for this date. Please try another day.');
+          }
+        } else {
+          setSlotError('Failed to load available times.');
+        }
+      } catch (error) {
+        console.error('Error fetching slots:', error);
+        setSlotError('Failed to load available times.');
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    };
+
+    fetchSlots();
+  }, [selectedDate]);
 
   const handleLocationsChange = useCallback((
     newPickup: Location | null, 
@@ -45,12 +107,61 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
     if (passengers > 1) setPassengers(p => p - 1);
   };
 
+  const formatDateDisplay = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const getSelectedTimeDisplay = () => {
+    const slot = availableSlots.find(s => s.hour === selectedHour);
+    return slot?.display || '';
+  };
+
   const handleSendQuote = async () => {
-    if (!fare || !pickup || !dropoff || distance === null) return;
+    if (!fare || !pickup || !dropoff || distance === null || !selectedDate || selectedHour === null) return;
 
     setIsSaving(true);
     
     try {
+      // Create booking
+      const bookingResponse = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingDate: selectedDate,
+          bookingHour: selectedHour,
+          serviceType,
+          pickupAddress: pickup.address,
+          dropoffAddress: dropoff.address,
+          distance,
+          passengers,
+          totalFare: fare.totalFare,
+        }),
+      });
+
+      const bookingData = await bookingResponse.json();
+
+      if (!bookingResponse.ok) {
+        if (bookingData.nextAvailable) {
+          setSlotError(`This slot is now full. Next available: ${bookingData.nextAvailable.display}`);
+          // Refresh slots
+          const slotsResponse = await fetch(`/api/bookings?date=${selectedDate}`);
+          const slotsData = await slotsResponse.json();
+          if (slotsResponse.ok) {
+            setAvailableSlots(slotsData.slots);
+          }
+        } else {
+          setSlotError(bookingData.error || 'Failed to book slot');
+        }
+        setIsSaving(false);
+        return;
+      }
+
+      // Also save to fare history
       await fetch('/api/fares', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,14 +178,17 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
         }),
       });
     } catch (error) {
-      console.error('Error saving fare:', error);
+      console.error('Error saving booking:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const whatsappMessage = fare && pickup && dropoff
-    ? `Hi! I need a ride quote:
+  const whatsappMessage = fare && pickup && dropoff && selectedDate && selectedHour !== null
+    ? `Hi! I'd like to book a ride:
+
+📅 Date: ${formatDateDisplay(selectedDate)}
+🕐 Time: ${getSelectedTimeDisplay()}
 
 📍 Pickup: ${pickup.address}
 📍 Dropoff: ${dropoff.address}
@@ -82,10 +196,12 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
 👥 Passengers: ${passengers}
 🚗 Service: ${serviceType === 'ride-premium' ? 'Premium' : 'Standard'}
 
-💰 Estimated Fare: ${formatCurrency(fare.totalFare)}
+💰 Total Fare: ${formatCurrency(fare.totalFare)}
 
-Can I book this ride?`
+Please confirm my booking!`
     : '';
+
+  const canBook = fare && pickup && dropoff && selectedDate && selectedHour !== null;
 
   return (
     <div className="space-y-6">
@@ -96,6 +212,89 @@ Can I book this ride?`
           Where are you going?
         </h2>
         <MapPicker onLocationsChange={handleLocationsChange} />
+      </div>
+
+      {/* Date & Time Section */}
+      <div className="card-static">
+        <h2 className="text-xl font-bold text-brand-black mb-5 flex items-center gap-2">
+          <span className="w-8 h-8 bg-golden-500 rounded-lg flex items-center justify-center text-sm">📅</span>
+          When do you need the ride?
+        </h2>
+        
+        <div className="space-y-4">
+          {/* Date Picker */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Select Date
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              min={getMinDate()}
+              max={getMaxDate()}
+              className="input-field"
+            />
+            {selectedDate && (
+              <p className="text-sm text-golden-600 mt-1 font-medium">
+                {formatDateDisplay(selectedDate)}
+              </p>
+            )}
+          </div>
+
+          {/* Time Slots */}
+          {selectedDate && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select Time
+                <span className="font-normal text-gray-500 ml-1">(2 slots per hour)</span>
+              </label>
+
+              {isLoadingSlots ? (
+                <div className="flex items-center gap-2 text-gray-500 py-4">
+                  <div className="w-5 h-5 border-2 border-golden-500 border-t-transparent rounded-full animate-spin"></div>
+                  Loading available times...
+                </div>
+              ) : slotError ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+                  {slotError}
+                </div>
+              ) : availableSlots.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                  {availableSlots.map((slot) => (
+                    <button
+                      key={slot.hour}
+                      onClick={() => {
+                        setSelectedHour(slot.hour);
+                        setSlotError(null);
+                      }}
+                      className={`py-3 px-2 rounded-lg text-sm font-semibold transition-all ${
+                        selectedHour === slot.hour
+                          ? 'bg-golden-500 text-brand-black'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <div>{slot.display}</div>
+                      <div className={`text-xs ${selectedHour === slot.hour ? 'text-brand-black/70' : 'text-gray-500'}`}>
+                        {slot.available} left
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {selectedHour !== null && (
+                <p className="text-sm text-green-600 mt-2 font-medium">
+                  ✓ Selected: {getSelectedTimeDisplay()}
+                </p>
+              )}
+
+              <p className="text-xs text-gray-500 mt-3">
+                💡 Bookings must be at least 1 hour in advance. Only 2 rides per hour available.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Options Section */}
@@ -231,6 +430,12 @@ Can I book this ride?`
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <h3 className="font-bold text-brand-black mb-2">Trip Summary</h3>
             <div className="text-sm text-gray-600 space-y-1">
+              {selectedDate && selectedHour !== null && (
+                <>
+                  <p>📅 Date: {formatDateDisplay(selectedDate)}</p>
+                  <p>🕐 Time: {getSelectedTimeDisplay()}</p>
+                </>
+              )}
               <p>📍 From: {pickup?.address}</p>
               <p>🎯 To: {dropoff?.address}</p>
               <p>📏 Distance: {distance} miles</p>
@@ -238,17 +443,27 @@ Can I book this ride?`
             </div>
           </div>
 
+          {/* Booking Status */}
+          {!canBook && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-yellow-800 text-sm">
+              {!selectedDate && '📅 Please select a date'}
+              {selectedDate && selectedHour === null && '🕐 Please select a time slot'}
+            </div>
+          )}
+
           {/* WhatsApp Button */}
           <WhatsAppButton 
             message={whatsappMessage}
-            className="w-full text-xl"
-            onBeforeOpen={handleSendQuote}
+            className={`w-full text-xl ${!canBook ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onBeforeOpen={canBook ? handleSendQuote : undefined}
           >
-            {isSaving ? 'Saving...' : 'Book via WhatsApp'}
+            {isSaving ? 'Booking...' : 'Book via WhatsApp'}
           </WhatsAppButton>
 
           <p className="text-center text-sm text-gray-500 mt-4">
-            Tap to open WhatsApp with your quote ready to send.
+            {canBook 
+              ? 'Tap to open WhatsApp with your booking ready to send.'
+              : 'Complete all fields above to book your ride.'}
           </p>
         </div>
       )}
