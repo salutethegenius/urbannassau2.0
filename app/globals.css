@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #1A1A1A;
+  --golden: #FFB800;
+  --brand-black: #1A1A1A;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-brand-black font-bold;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-black hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-200 shadow-uber hover:shadow-card-hover active:scale-[0.98];
+  }
+  
+  .btn-secondary {
+    @apply bg-golden-500 hover:bg-golden-600 text-brand-black font-bold py-4 px-8 rounded-lg text-lg transition-all duration-200 shadow-uber hover:shadow-card-hover active:scale-[0.98];
+  }
+  
+  .btn-outline {
+    @apply border-2 border-brand-black text-brand-black hover:bg-brand-black hover:text-white font-bold py-4 px-8 rounded-lg text-lg transition-all duration-200;
+  }
+  
+  .btn-white {
+    @apply bg-white hover:bg-gray-100 text-brand-black font-bold py-4 px-8 rounded-lg text-lg transition-all duration-200 shadow-uber;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-card p-6 transition-shadow duration-200 hover:shadow-card-hover;
+  }
+  
+  .card-static {
+    @apply bg-white rounded-xl shadow-card p-6;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-lg focus:border-golden-500 focus:outline-none transition-colors bg-white;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Google Places Autocomplete Dropdown Styling */
+.pac-container {
+  z-index: 10000 !important;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  margin-top: 4px;
+  font-family: inherit;
+}
+
+.pac-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.pac-item:first-child {
+  border-top: none;
+  border-radius: 10px 10px 0 0;
+}
+
+.pac-item:last-child {
+  border-radius: 0 0 10px 10px;
+}
+
+.pac-item:hover {
+  background-color: #FFF9E6;
+}
+
+.pac-item-selected {
+  background-color: #FFF9E6;
+}
+
+.pac-icon {
+  margin-right: 12px;
+}
+
+.pac-item-query {
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.pac-matched {
+  color: #FFB800;
+  font-weight: 700;
+}

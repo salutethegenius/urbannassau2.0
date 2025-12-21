@@ -1,0 +1,46 @@
+// Prisma schema for Urban Nassau Rides
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // hashed with bcrypt
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model FareSettings {
+  id               Int      @id @default(1)
+  rideStandardBase Float    @default(15)
+  ridePremiumBase  Float    @default(20)
+  freeDistance     Float    @default(5)
+  perMileRate      Float    @default(4)
+  passengerFee     Float    @default(5)
+  courierBase      Float    @default(12)
+  errandBase       Float    @default(25)
+  shoppingBase     Float    @default(50)
+  transportBase    Float    @default(20)
+  updatedAt        DateTime @updatedAt
+}
+
+model FareHistory {
+  id             Int      @id @default(autoincrement())
+  serviceType    String
+  pickupAddress  String
+  dropoffAddress String
+  distance       Float
+  passengers     Int
+  baseFare       Float
+  distanceFare   Float
+  passengerFare  Float
+  totalFare      Float
+  createdAt      DateTime @default(now())
+}
