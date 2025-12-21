@@ -31,6 +31,17 @@ cp .env.local.example .env.local
 ```
 
 Edit `.env.local` and add your values:
+
+**For Production (Supabase/PostgreSQL)** - See [SETUP_DATABASE.md](./SETUP_DATABASE.md):
+```
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+DATABASE_URL="postgresql://postgres:password@db.xxxxx.supabase.co:5432/postgres"
+NEXTAUTH_SECRET=your_secret_key_here
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_WHATSAPP_NUMBER=12428072353
+```
+
+**For Local Development (SQLite)** - Note: Won't work on Vercel:
 ```
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 DATABASE_URL="file:./prisma/dev.db"
@@ -41,7 +52,16 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=12428072353
 
 3. Set up the database:
 ```bash
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations (creates tables)
 npx prisma migrate dev
+
+# Or push schema directly
+npx prisma db push
+
+# Seed initial data (optional)
 npm run db:seed
 ```
 
@@ -107,17 +127,28 @@ All values are configurable from the admin panel.
 
 - **Framework**: Next.js 14 (App Router)
 - **Styling**: Tailwind CSS
-- **Database**: SQLite (via Prisma)
+- **Database**: PostgreSQL (Supabase) - See [SETUP_DATABASE.md](./SETUP_DATABASE.md)
 - **Auth**: NextAuth.js
 - **Maps**: Google Maps JavaScript API
+
+## Database Setup
+
+**Important**: This project uses PostgreSQL for production (required for Vercel deployment).
+
+See [SETUP_DATABASE.md](./SETUP_DATABASE.md) for detailed instructions on:
+- Setting up Supabase (recommended)
+- Running migrations
+- Configuring environment variables
+- Troubleshooting
 
 ## Deployment
 
 Ready for deployment on Vercel or any Node.js platform. For production:
 
-1. Update `DATABASE_URL` to a production database (PostgreSQL recommended)
-2. Set proper `NEXTAUTH_SECRET` and `NEXTAUTH_URL`
-3. Add your Google Maps API key with proper restrictions
+1. **Set up database**: Follow [SETUP_DATABASE.md](./SETUP_DATABASE.md) to set up Supabase
+2. Set proper `NEXTAUTH_SECRET` and `NEXTAUTH_URL` in Vercel environment variables
+3. Add your Google Maps API key with proper restrictions in Vercel environment variables
+4. Ensure `DATABASE_URL` is set in Vercel (from Supabase connection string)
 
 ## Contact
 
