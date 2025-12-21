@@ -64,19 +64,28 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
 
       try {
         const response = await fetch(`/api/bookings?date=${selectedDate}`);
-        const data = await response.json();
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API Error:', response.status, errorData);
+          setSlotError(errorData.error || `Failed to load available times. (Status: ${response.status})`);
+          return;
+        }
 
-        if (response.ok) {
+        const data = await response.json();
+        
+        if (data.slots && Array.isArray(data.slots)) {
           setAvailableSlots(data.slots);
           if (data.slots.length === 0) {
             setSlotError('No available slots for this date. Please try another day.');
           }
         } else {
-          setSlotError('Failed to load available times.');
+          console.error('Invalid response format:', data);
+          setSlotError('Invalid response from server. Please try again.');
         }
       } catch (error) {
         console.error('Error fetching slots:', error);
-        setSlotError('Failed to load available times.');
+        setSlotError(`Failed to load available times: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setIsLoadingSlots(false);
       }

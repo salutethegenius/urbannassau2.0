@@ -77,7 +77,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error checking availability:', error);
-    return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ 
+      error: 'Failed to check availability',
+      details: errorMessage 
+    }, { status: 500 });
   }
 }
 
