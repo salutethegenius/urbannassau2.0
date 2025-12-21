@@ -271,7 +271,7 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
             <p><strong>Common fixes:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Ensure Maps JavaScript API and Places API are enabled in Google Cloud Console</li>
-              <li>Check that your API key doesn't have HTTP referrer restrictions blocking localhost</li>
+              <li>Check that your API key doesn&apos;t have HTTP referrer restrictions blocking localhost</li>
               <li>Verify billing is enabled for your Google Cloud project</li>
               <li>Check browser console for detailed error messages</li>
             </ul>
