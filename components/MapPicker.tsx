@@ -46,12 +46,25 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
   const pickupInputRef = useRef<google.maps.places.Autocomplete | null>(null);
   const dropoffInputRef = useRef<google.maps.places.Autocomplete | null>(null);
   const pickupTextRef = useRef<HTMLInputElement | null>(null);
+  const dropoffTextRef = useRef<HTMLInputElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    googleMapsApiKey: apiKey,
     libraries,
   });
+
+  // Log API key status for debugging (remove in production if needed)
+  useEffect(() => {
+    if (!apiKey) {
+      console.error('Google Maps API key is missing. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your .env file.');
+    }
+    if (loadError) {
+      console.error('Google Maps API Error:', loadError);
+    }
+  }, [apiKey, loadError]);
 
   // Check if geolocation is available and prompt user
   useEffect(() => {
@@ -79,15 +92,15 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
           (results, status) => {
             setIsGettingLocation(false);
             if (status === 'OK' && results && results[0]) {
+              const address = results[0].formatted_address;
               const newPickup: Location = {
                 lat: latitude,
                 lng: longitude,
-                address: results[0].formatted_address,
+                address: address,
               };
               setPickup(newPickup);
-              
               if (pickupTextRef.current) {
-                pickupTextRef.current.value = results[0].formatted_address;
+                pickupTextRef.current.value = address;
               }
               
               if (mapRef.current) {
@@ -147,33 +160,45 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
     mapRef.current = map;
   }, []);
 
-  const handlePickupSelect = () => {
-    const place = pickupInputRef.current?.getPlace();
+  const handlePickupSelect = useCallback(() => {
+    if (!pickupInputRef.current) return;
+    
+    const place = pickupInputRef.current.getPlace();
     if (place?.geometry?.location) {
+      const address = place.formatted_address || place.name || '';
       const newPickup: Location = {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
-        address: place.formatted_address || place.name || '',
+        address: address,
       };
       setPickup(newPickup);
+      if (pickupTextRef.current) {
+        pickupTextRef.current.value = address;
+      }
       
       if (mapRef.current) {
         mapRef.current.panTo({ lat: newPickup.lat, lng: newPickup.lng });
       }
     }
-  };
+  }, []);
 
-  const handleDropoffSelect = () => {
-    const place = dropoffInputRef.current?.getPlace();
+  const handleDropoffSelect = useCallback(() => {
+    if (!dropoffInputRef.current) return;
+    
+    const place = dropoffInputRef.current.getPlace();
     if (place?.geometry?.location) {
+      const address = place.formatted_address || place.name || '';
       const newDropoff: Location = {
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
-        address: place.formatted_address || place.name || '',
+        address: address,
       };
       setDropoff(newDropoff);
+      if (dropoffTextRef.current) {
+        dropoffTextRef.current.value = address;
+      }
     }
-  };
+  }, []);
 
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
@@ -183,16 +208,23 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
     
     geocoder.geocode({ location: latLng }, (results, status) => {
       if (status === 'OK' && results && results[0]) {
+        const address = results[0].formatted_address;
         const newLocation: Location = {
           lat: latLng.lat,
           lng: latLng.lng,
-          address: results[0].formatted_address,
+          address: address,
         };
         
         if (!pickup) {
           setPickup(newLocation);
+          if (pickupTextRef.current) {
+            pickupTextRef.current.value = address;
+          }
         } else if (!dropoff) {
           setDropoff(newLocation);
+          if (dropoffTextRef.current) {
+            dropoffTextRef.current.value = address;
+          }
         }
       }
     });
@@ -203,15 +235,48 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
     setDropoff(null);
     setDirections(null);
     setDistance(null);
+    if (pickupTextRef.current) {
+      pickupTextRef.current.value = '';
+    }
+    if (dropoffTextRef.current) {
+      dropoffTextRef.current.value = '';
+    }
     onLocationsChange(null, null, null);
   };
 
+  // Initialize autocomplete refs when autocomplete is loaded
+  const onPickupAutocompleteLoad = useCallback((autocomplete: google.maps.places.Autocomplete) => {
+    pickupInputRef.current = autocomplete;
+  }, []);
+
+  const onDropoffAutocompleteLoad = useCallback((autocomplete: google.maps.places.Autocomplete) => {
+    dropoffInputRef.current = autocomplete;
+  }, []);
+
   if (loadError) {
+    console.error('Google Maps Load Error:', loadError);
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600 text-center">
-          Error loading maps. Please check your API key.
-        </p>
+      <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6">
+        <div className="text-center">
+          <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-red-700 font-bold text-lg mb-2">
+            Google Maps Failed to Load
+          </p>
+          <p className="text-red-600 text-sm mb-4">
+            {loadError.message || 'Unable to load Google Maps. Please check your API key configuration.'}
+          </p>
+          <div className="bg-white rounded p-3 text-left text-xs text-gray-700 space-y-1">
+            <p><strong>Common fixes:</strong></p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Ensure Maps JavaScript API and Places API are enabled in Google Cloud Console</li>
+              <li>Check that your API key doesn't have HTTP referrer restrictions blocking localhost</li>
+              <li>Verify billing is enabled for your Google Cloud project</li>
+              <li>Check browser console for detailed error messages</li>
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }
@@ -279,7 +344,7 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
             📍 Pickup Location
           </label>
           <Autocomplete
-            onLoad={(autocomplete) => { pickupInputRef.current = autocomplete; }}
+            onLoad={onPickupAutocompleteLoad}
             onPlaceChanged={handlePickupSelect}
             options={{
               componentRestrictions: { country: 'bs' },
@@ -316,7 +381,7 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
             🎯 Dropoff Location
           </label>
           <Autocomplete
-            onLoad={(autocomplete) => { dropoffInputRef.current = autocomplete; }}
+            onLoad={onDropoffAutocompleteLoad}
             onPlaceChanged={handleDropoffSelect}
             options={{
               componentRestrictions: { country: 'bs' },
@@ -325,6 +390,7 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
             }}
           >
             <input
+              ref={dropoffTextRef}
               type="text"
               placeholder="Where are you going?"
               className="input-field"

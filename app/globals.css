@@ -71,6 +71,13 @@ body {
   cursor: pointer;
   font-size: 16px;
   border-top: 1px solid #f3f4f6;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background-color: #f3f4f6;
 }
 
 .pac-item:first-child {
