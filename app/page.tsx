@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
 
 async function getFareSettings() {
@@ -14,25 +15,41 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-golden-500 py-20 md:py-32">
+      <section className="bg-golden-500 py-12 md:py-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-7xl font-black text-brand-black mb-6 leading-tight">
-              Go anywhere.<br />
-              Get anything.
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-brand-black/80 mb-10 max-w-xl">
-              Rides, deliveries, and errands across Nassau. Fast, reliable, and always on time.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/calculator" className="btn-primary text-center text-xl">
-                Get Your Quote
-              </Link>
-              <Link href="/services" className="btn-white text-center text-xl">
-                View Services
-              </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Text Content */}
+            <div>
+              <h1 className="text-5xl md:text-7xl font-black text-brand-black mb-6 leading-tight">
+                Go anywhere.<br />
+                Get anything.
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-brand-black/80 mb-10 max-w-xl">
+                Rides, deliveries, and errands across Nassau. Fast, reliable, and always on time.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/calculator" className="btn-primary text-center text-xl">
+                  Get Your Quote
+                </Link>
+                <Link href="/services" className="btn-white text-center text-xl">
+                  View Services
+                </Link>
+              </div>
+            </div>
+
+            {/* Hero Image */}
+            <div className="relative hidden lg:block">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
+                <Image
+                  src="/images/hero-illustration.png"
+                  alt="Urban Nassau Rides - Ride service in Nassau, Bahamas"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>
