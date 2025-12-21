@@ -40,7 +40,7 @@ export default async function HomePage() {
             </div>
 
             {/* Hero Image */}
-            <div className="relative hidden lg:block">
+            <div className="relative">
               <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
                 <Image
                   src="/images/hero-illustration.png"
