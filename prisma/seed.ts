@@ -12,7 +12,7 @@ async function main() {
     update: {},
     create: {
       id: 1,
-      rideStandardBase: 15,
+      rideStandardBase: 18,
       ridePremiumBase: 20,
       freeDistance: 5,
       perMileRate: 4,

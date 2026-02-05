@@ -2,26 +2,28 @@ import FareCalculator from '@/components/FareCalculator';
 import { prisma } from '@/lib/prisma';
 import type { FareSettings } from '@/lib/fareCalculation';
 
+const DEFAULT_FARE_SETTINGS: FareSettings = {
+  rideStandardBase: 18,
+  ridePremiumBase: 20,
+  freeDistance: 5,
+  perMileRate: 4,
+  passengerFee: 5,
+  courierBase: 12,
+  errandBase: 25,
+  shoppingBase: 50,
+  transportBase: 20,
+};
+
 async function getFareSettings(): Promise<FareSettings> {
-  const settings = await prisma.fareSettings.findFirst({
-    where: { id: 1 }
-  });
-  
-  if (!settings) {
-    return {
-      rideStandardBase: 15,
-      ridePremiumBase: 20,
-      freeDistance: 5,
-      perMileRate: 4,
-      passengerFee: 5,
-      courierBase: 12,
-      errandBase: 25,
-      shoppingBase: 50,
-      transportBase: 20,
-    };
+  try {
+    const settings = await prisma.fareSettings.findFirst({
+      where: { id: 1 }
+    });
+    if (settings) return settings;
+  } catch {
+    // DB unreachable (e.g. Supabase paused) — use defaults so calculator still works
   }
-  
-  return settings;
+  return DEFAULT_FARE_SETTINGS;
 }
 
 export default async function CalculatorPage() {

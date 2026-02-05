@@ -162,7 +162,7 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
           setSlotError(bookingData.error || 'Failed to book slot');
         }
         setIsSaving(false);
-        return;
+        throw new Error('Booking failed'); // Prevent WhatsApp from opening
       }
 
       // Also save to fare history (non-blocking: log on failure, don't block user)
@@ -190,6 +190,8 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
       }
     } catch (error) {
       console.error('Error saving booking:', error);
+      if (!slotError) setSlotError('Failed to book. Please try again.');
+      throw error; // Re-throw so WhatsApp does not open on failure
     } finally {
       setIsSaving(false);
     }

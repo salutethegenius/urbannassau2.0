@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Date is required' }, { status: 400 });
     }
 
-    const date = new Date(dateStr);
+    // Parse as local date to avoid timezone bugs (YYYY-MM-DD in UTC = previous day in PST)
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
     if (isNaN(date.getTime())) {
       return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
     }
@@ -117,7 +119,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Booking hour must be between ${FIRST_HOUR} (7 AM) and ${LAST_HOUR} (11 PM)` }, { status: 400 });
     }
 
-    const date = new Date(bookingDate);
+    const dateParts = String(bookingDate).split('T')[0].split('-').map(Number);
+    const date = dateParts.length === 3 ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2]) : new Date(bookingDate);
     if (isNaN(date.getTime())) {
       return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
     }

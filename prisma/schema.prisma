@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,7 +19,7 @@ model User {
 
 model FareSettings {
   id               Int      @id @default(1)
-  rideStandardBase Float    @default(15)
+  rideStandardBase Float    @default(18)
   ridePremiumBase  Float    @default(20)
   freeDistance     Float    @default(5)
   perMileRate      Float    @default(4)
