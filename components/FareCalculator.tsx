@@ -4,12 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import MapPicker from './MapPicker';
 import WhatsAppButton from './WhatsAppButton';
 import { calculateFare, formatCurrency, type FareSettings, type ServiceType } from '@/lib/fareCalculation';
-
-interface Location {
-  lat: number;
-  lng: number;
-  address: string;
-}
+import type { Location } from '@/types/map';
 
 interface FareCalculatorProps {
   settings: FareSettings;
@@ -155,12 +150,12 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
       const bookingData = await bookingResponse.json();
 
       if (!bookingResponse.ok) {
+        setSelectedHour(null);
         if (bookingData.nextAvailable) {
           setSlotError(`This slot is now full. Next available: ${bookingData.nextAvailable.display}`);
-          // Refresh slots
           const slotsResponse = await fetch(`/api/bookings?date=${selectedDate}`);
           const slotsData = await slotsResponse.json();
-          if (slotsResponse.ok) {
+          if (slotsResponse.ok && Array.isArray(slotsData.slots)) {
             setAvailableSlots(slotsData.slots);
           }
         } else {
@@ -170,22 +165,29 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
         return;
       }
 
-      // Also save to fare history
-      await fetch('/api/fares', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceType,
-          pickupAddress: pickup.address,
-          dropoffAddress: dropoff.address,
-          distance,
-          passengers,
-          baseFare: fare.baseFare,
-          distanceFare: fare.distanceFare,
-          passengerFare: fare.passengerFare,
-          totalFare: fare.totalFare,
-        }),
-      });
+      // Also save to fare history (non-blocking: log on failure, don't block user)
+      try {
+        const fareRes = await fetch('/api/fares', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serviceType,
+            pickupAddress: pickup.address,
+            dropoffAddress: dropoff.address,
+            distance,
+            passengers,
+            baseFare: fare.baseFare,
+            distanceFare: fare.distanceFare,
+            passengerFare: fare.passengerFare,
+            totalFare: fare.totalFare,
+          }),
+        });
+        if (!fareRes.ok) {
+          console.warn('Fare history save failed:', fareRes.status, await fareRes.text());
+        }
+      } catch (err) {
+        console.warn('Fare history could not be updated:', err);
+      }
     } catch (error) {
       console.error('Error saving booking:', error);
     } finally {
@@ -203,7 +205,7 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
 📍 Dropoff: ${dropoff.address}
 📏 Distance: ${distance} miles
 👥 Passengers: ${passengers}
-🚗 Service: ${serviceType === 'ride-premium' ? 'Premium' : 'Standard'}
+🚗 Service: Ride
 
 💰 Total Fare: ${formatCurrency(fare.totalFare)}
 
@@ -314,45 +316,6 @@ Please confirm my booking!`
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Service Type Toggle */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Service Type
-            </label>
-            <div className="flex rounded-lg overflow-hidden border-2 border-gray-200">
-              <button
-                onClick={() => setServiceType('ride-standard')}
-                className={`flex-1 py-4 px-4 text-lg font-bold transition-all ${
-                  serviceType === 'ride-standard'
-                    ? 'bg-brand-black text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className="text-center">
-                  <div>Standard</div>
-                  <div className="text-sm font-normal opacity-80">
-                    {formatCurrency(settings.rideStandardBase)} base
-                  </div>
-                </div>
-              </button>
-              <button
-                onClick={() => setServiceType('ride-premium')}
-                className={`flex-1 py-4 px-4 text-lg font-bold transition-all ${
-                  serviceType === 'ride-premium'
-                    ? 'bg-golden-500 text-brand-black'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className="text-center">
-                  <div>Premium ✨</div>
-                  <div className="text-sm font-normal opacity-80">
-                    {formatCurrency(settings.ridePremiumBase)} base
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-
           {/* Passenger Counter */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -400,7 +363,7 @@ Please confirm my booking!`
           {/* Fare Breakdown */}
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center py-3 border-b border-gray-100">
-              <span className="text-gray-600">Base Fare ({serviceType === 'ride-premium' ? 'Premium' : 'Standard'})</span>
+              <span className="text-gray-600">Base Fare</span>
               <span className="font-bold text-brand-black">{formatCurrency(fare.baseFare)}</span>
             </div>
             
@@ -430,10 +393,13 @@ Please confirm my booking!`
           </div>
 
           {/* Total */}
-          <div className="bg-brand-black rounded-xl p-6 text-center mb-6">
+          <div className="bg-brand-black rounded-xl p-6 text-center mb-4">
             <p className="text-gray-400 text-sm uppercase tracking-wide mb-1">Total Fare</p>
             <p className="text-5xl font-black text-golden-500">{formatCurrency(fare.totalFare)}</p>
           </div>
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Wait time: $5 every 10 minutes (if applicable).
+          </p>
 
           {/* Trip Summary */}
           <div className="bg-gray-50 rounded-xl p-4 mb-6">

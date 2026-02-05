@@ -39,7 +39,21 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
+    const numberFields = [
+      'rideStandardBase', 'ridePremiumBase', 'freeDistance', 'perMileRate',
+      'passengerFee', 'courierBase', 'errandBase', 'shoppingBase', 'transportBase',
+    ] as const;
+    for (const key of numberFields) {
+      const value = body[key];
+      if (value === undefined || value === null || typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        return NextResponse.json(
+          { error: `Invalid or missing field: ${key} (must be a non-negative number)` },
+          { status: 400 }
+        );
+      }
+    }
+
     const settings = await prisma.fareSettings.upsert({
       where: { id: 1 },
       update: {

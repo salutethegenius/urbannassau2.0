@@ -138,7 +138,7 @@ export default async function AdminDashboard() {
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-500">Premium Ride</p>
+                    <p className="text-sm text-gray-500">Private driver</p>
                     <p className="text-2xl font-bold text-bahamian-gold">
                       ${settings.ridePremiumBase}
                     </p>

@@ -14,10 +14,9 @@ export default async function ServicesPage() {
 
   const services = [
     {
-      title: 'Rides',
-      description: 'Need to get somewhere? We got you. Safe, reliable rides across New Providence.',
-      standardPrice: settings?.rideStandardBase || 15,
-      premiumPrice: settings?.ridePremiumBase || 20,
+      title: 'Pick up and drop off',
+      description: 'Safe pick up and drop offs anywhere across New Providence.',
+      price: 18,
       hasCalculator: true,
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,13 +27,14 @@ export default async function ServicesPage() {
         'First 5 miles included in base fare',
         '$4 per mile after that',
         '$5 per extra passenger',
-        'Standard or Premium service',
+        'Wait time: $5 every 10 minutes',
       ],
     },
     {
-      title: 'Courier / Delivery',
-      description: 'Got a package? We\'ll pick it up and drop it off. Documents, parcels, you name it.',
-      price: settings?.courierBase || 12,
+      title: 'Package delivery',
+      description: 'Secure package delivery. Documents, parcels — we\'ll pick up and drop off.',
+      price: 25,
+      priceNote: 'from the boat',
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -43,14 +43,27 @@ export default async function ServicesPage() {
       features: [
         'Same-day delivery available',
         'Documents and packages',
-        'Real-time updates',
         'Secure handling',
       ],
     },
     {
-      title: 'Errand Services',
+      title: 'Food delivery',
+      description: 'Food delivery when you need it. Safe and reliable.',
+      price: 18,
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      features: [
+        'Restaurant and takeaway pickup',
+        'Delivered to your door',
+      ],
+    },
+    {
+      title: 'Errands',
       description: 'Too busy? Let us handle your errands. Bill payments, pick-ups, drop-offs — we do it all.',
-      price: settings?.errandBase || 25,
+      price: 28,
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -64,9 +77,9 @@ export default async function ServicesPage() {
       ],
     },
     {
-      title: 'Personal Shopping',
-      description: 'Need groceries? A gift? Something from the store? Tell us what you need and we\'ll bring it to you.',
-      price: settings?.shoppingBase || 50,
+      title: 'Personal grocery shopping',
+      description: 'Need groceries? Tell us what you need and we\'ll bring it to you.',
+      price: 99,
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -77,22 +90,6 @@ export default async function ServicesPage() {
         'Gift purchases',
         'Store pickups',
         'Delivered to your door',
-      ],
-    },
-    {
-      title: 'Transport of Goods',
-      description: 'Moving something bigger? Furniture, equipment, or bulk items — we can help.',
-      price: settings?.transportBase || 20,
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l-3-3m3 3l3-3m-3 3V3" />
-        </svg>
-      ),
-      features: [
-        'Furniture delivery',
-        'Equipment transport',
-        'Bulk items',
-        'Careful handling',
       ],
     },
   ];
@@ -124,17 +121,19 @@ export default async function ServicesPage() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-brand-black">{service.title}</h2>
-                    {'hasCalculator' in service && service.hasCalculator ? (
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-black text-brand-black">${service.standardPrice}</span>
-                        <span className="text-sm text-gray-500">/ ${service.premiumPrice} premium</span>
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <span className="text-sm text-gray-500">From </span>
-                        <span className="text-2xl font-black text-brand-black">${service.price}</span>
-                      </div>
-                    )}
+                    <div className="mt-1">
+                      {'priceNote' in service && service.priceNote ? (
+                        <>
+                          <span className="text-2xl font-black text-brand-black">${service.price}</span>
+                          <span className="text-sm text-gray-500 ml-1">{service.priceNote}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm text-gray-500">From </span>
+                          <span className="text-2xl font-black text-brand-black">${service.price}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -179,6 +178,57 @@ export default async function ServicesPage() {
         </div>
       </section>
 
+      {/* Premium Services */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-black text-brand-black mb-4 text-center">
+            Premium Services
+          </h2>
+          <p className="text-xl text-gray-600 text-center max-w-2xl mx-auto mb-12">
+            Trusted partner for pickups and deliveries. Safe, always on time.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card-static text-center">
+              <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mx-auto mb-4 text-brand-black">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-brand-black mb-2">VIP Kids Experience</h3>
+              <p className="text-gray-600 mb-4">Safe, dedicated rides for your children when it matters most.</p>
+              <WhatsAppButton message="Hi! I'm interested in the VIP Kids Experience. Can you tell me more?" className="w-full">
+                Get a Quote
+              </WhatsAppButton>
+            </div>
+            <div className="card-static text-center">
+              <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mx-auto mb-4 text-brand-black">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.83 12.83 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.83 12.83 0 01.665-6.479L12 14z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-brand-black mb-2">School pick ups and drop offs</h3>
+              <p className="text-gray-600 mb-4">Reliable school runs so you can focus on your day.</p>
+              <WhatsAppButton message="Hi! I need school pick up and drop off. Can you help?" className="w-full">
+                Get a Quote
+              </WhatsAppButton>
+            </div>
+            <div className="card-static text-center">
+              <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mx-auto mb-4 text-brand-black">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-brand-black mb-2">Private driver</h3>
+              <p className="text-gray-600 mb-4">Dedicated driver for your schedule. Quote on request.</p>
+              <WhatsAppButton message="Hi! I'm interested in a private driver. Can you give me a quote?" className="w-full">
+                Get a Quote
+              </WhatsAppButton>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Info */}
       <section className="py-12 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,7 +237,7 @@ export default async function ServicesPage() {
               <span className="text-golden-600">💡</span>
               How Ride Pricing Works
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-gray-700">
               <div className="text-center p-4 bg-white rounded-lg">
                 <div className="text-3xl font-black text-brand-black mb-1">5 mi</div>
                 <p className="text-sm text-gray-500">Free miles included</p>
@@ -200,9 +250,13 @@ export default async function ServicesPage() {
                 <div className="text-3xl font-black text-brand-black mb-1">$5</div>
                 <p className="text-sm text-gray-500">Per extra passenger</p>
               </div>
+              <div className="text-center p-4 bg-white rounded-lg">
+                <div className="text-3xl font-black text-brand-black mb-1">$5</div>
+                <p className="text-sm text-gray-500">Wait time (every 10 min)</p>
+              </div>
             </div>
             <p className="text-sm text-gray-600 text-center mt-4">
-              Other services are quoted based on the job. Message us for a custom quote!
+              Packaging available upon request. Other services are quoted based on the job. Message us for a custom quote!
             </p>
           </div>
         </div>
@@ -219,17 +273,11 @@ export default async function ServicesPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/calculator" className="btn-secondary text-xl">
-              Ride Calculator
+              Get a Quote
             </Link>
-            <a 
-              href="tel:+12428072353" 
-              className="bg-white text-brand-black font-bold py-4 px-8 rounded-lg text-xl hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              Call (242) 807-2353
-            </a>
+            <Link href="/careers" className="bg-white text-brand-black font-bold py-4 px-8 rounded-lg text-xl hover:bg-gray-100 transition-colors text-center">
+              Driver Apply
+            </Link>
           </div>
         </div>
       </section>
@@ -237,13 +285,18 @@ export default async function ServicesPage() {
       {/* Hours Banner */}
       <section className="bg-golden-500 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-brand-black">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-brand-black">
+            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-lg font-bold text-center">
-              Open Daily: 6:00 AM – 11:45 PM • Nassau, Bahamas 🇧🇸
-            </p>
+            <div className="flex flex-col items-center text-center">
+              <p className="text-lg font-bold">
+                Open daily, 7am to 11pm • Nassau, Bahamas 🇧🇸
+              </p>
+              <p className="text-sm font-medium opacity-90">
+                Before 7am or after 11pm, additional $10 fee.
+              </p>
+            </div>
           </div>
         </div>
       </section>

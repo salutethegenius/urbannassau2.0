@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer, Autocomplete } from '@react-google-maps/api';
+import type { Location } from '@/types/map';
 
 const libraries: ("places" | "geometry" | "drawing")[] = ['places'];
 
@@ -23,12 +24,6 @@ const mapOptions = {
   mapTypeControl: false,
   fullscreenControl: false,
 };
-
-interface Location {
-  lat: number;
-  lng: number;
-  address: string;
-}
 
 interface MapPickerProps {
   onLocationsChange: (pickup: Location | null, dropoff: Location | null, distance: number | null) => void;
@@ -56,15 +51,29 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
     libraries,
   });
 
-  // Log API key status for debugging (remove in production if needed)
+  // Log API key status for debugging
   useEffect(() => {
     if (!apiKey) {
-      console.error('Google Maps API key is missing. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your .env file.');
+      console.error('Google Maps API key is missing. Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local');
     }
     if (loadError) {
       console.error('Google Maps API Error:', loadError);
     }
   }, [apiKey, loadError]);
+
+  // Show clear error when key is missing so we never render map/autocomplete with empty key
+  if (!apiKey.trim()) {
+    return (
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6">
+        <div className="text-center">
+          <p className="text-amber-800 font-bold text-lg mb-2">Google Maps API key is missing</p>
+          <p className="text-amber-700 text-sm mb-4">
+            Add <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-amber-100 px-1 rounded">.env.local</code> file, then restart the dev server.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Check if geolocation is available and prompt user
   useEffect(() => {
@@ -262,18 +271,17 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-red-700 font-bold text-lg mb-2">
-            Google Maps Failed to Load
+            Google Maps failed to load
           </p>
           <p className="text-red-600 text-sm mb-4">
-            {loadError.message || 'Unable to load Google Maps. Please check your API key configuration.'}
+            {loadError.message || 'Check your API key and Google Cloud settings.'}
           </p>
           <div className="bg-white rounded p-3 text-left text-xs text-gray-700 space-y-1">
-            <p><strong>Common fixes:</strong></p>
+            <p><strong>Fix “This page didn’t load Google Maps correctly”:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Ensure Maps JavaScript API and Places API are enabled in Google Cloud Console</li>
-              <li>Check that your API key doesn&apos;t have HTTP referrer restrictions blocking localhost</li>
-              <li>Verify billing is enabled for your Google Cloud project</li>
-              <li>Check browser console for detailed error messages</li>
+              <li><strong>Referrer:</strong> In Google Cloud Console → APIs &amp; Services → Credentials → your API key → Application restrictions, add <code className="bg-gray-100 px-0.5">http://localhost:3002/*</code> (and your production URL) under “HTTP referrers”.</li>
+              <li><strong>APIs:</strong> Enable “Maps JavaScript API” and “Places API” under APIs &amp; Services → Library.</li>
+              <li><strong>Billing:</strong> Ensure billing is enabled for the project.</li>
             </ul>
           </div>
         </div>
@@ -412,7 +420,7 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
       )}
 
       {/* Map */}
-      <div className="rounded-xl overflow-hidden shadow-uber border border-gray-200">
+      <div className="rounded-xl overflow-hidden shadow-uber border border-gray-200 relative">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           zoom={13}
@@ -453,6 +461,9 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
       {/* Helper Text */}
       <p className="text-sm text-gray-500 text-center">
         💡 Type an address or tap the map to set your pickup and dropoff points
+      </p>
+      <p className="text-xs text-gray-400 text-center">
+        Map not loading? In Google Cloud Console, add this site’s URL (e.g. <code className="bg-gray-100 px-0.5 rounded">http://localhost:3002/*</code>) to your API key’s HTTP referrer list and enable Maps JavaScript API + Places API.
       </p>
 
       {/* Clear Button */}

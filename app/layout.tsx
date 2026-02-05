@@ -12,8 +12,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Urban Nassau Rides | Rides, Delivery & Courier Services",
-  description: "Your trusted partner for rides, deliveries, errands, and personal shopping in Nassau, Bahamas. Get instant quotes and reliable service from 6AM to 11:45PM daily.",
+  title: "Urban Nassau Rides | Pick Up's, Delivery & Courier",
+  description: "Trusted partner for pickups and deliveries in Nassau, Bahamas. Safe, reliable service. Get instant quotes. Open 7AM to 11PM daily; after-hours fee applies.",
   keywords: ["Nassau taxi", "Bahamas delivery", "courier Nassau", "errand service Bahamas", "ride service Nassau"],
 };
 

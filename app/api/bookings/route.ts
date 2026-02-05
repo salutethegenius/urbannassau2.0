@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma';
 
 const MAX_SLOTS_PER_HOUR = 2;
 const MIN_HOURS_AHEAD = 1;
+const FIRST_HOUR = 7;   // 7 AM
+const LAST_HOUR = 23;   // 11 PM
+
+function formatHourDisplay(hour: number): string {
+  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  return `${displayHour}:00 ${ampm}`;
+}
 
 // GET: Check available slots for a given date
 export async function GET(request: NextRequest) {
@@ -15,6 +23,9 @@ export async function GET(request: NextRequest) {
     }
 
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+    }
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -42,14 +53,14 @@ export async function GET(request: NextRequest) {
       bookingsPerHour[booking.bookingHour] = (bookingsPerHour[booking.bookingHour] || 0) + 1;
     });
 
-    // Generate available hours (6 AM to 11 PM = hours 6-23)
+    // Generate available hours (7 AM to 11 PM = hours 7-23)
     const now = new Date();
     const isToday = startOfDay.toDateString() === now.toDateString();
     const currentHour = now.getHours();
 
     const availableSlots: { hour: number; available: number; display: string }[] = [];
 
-    for (let hour = 6; hour <= 23; hour++) {
+    for (let hour = FIRST_HOUR; hour <= LAST_HOUR; hour++) {
       // Skip hours that are in the past or within the 1-hour buffer
       if (isToday && hour <= currentHour + MIN_HOURS_AHEAD) {
         continue;
@@ -59,13 +70,10 @@ export async function GET(request: NextRequest) {
       const available = MAX_SLOTS_PER_HOUR - booked;
 
       if (available > 0) {
-        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        
         availableSlots.push({
           hour,
           available,
-          display: `${displayHour}:00 ${ampm}`,
+          display: formatHourDisplay(hour),
         });
       }
     }
@@ -105,8 +113,14 @@ export async function POST(request: NextRequest) {
     if (!bookingDate || bookingHour === undefined || !serviceType || !pickupAddress || !dropoffAddress) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    if (typeof bookingHour !== 'number' || bookingHour < FIRST_HOUR || bookingHour > LAST_HOUR) {
+      return NextResponse.json({ error: `Booking hour must be between ${FIRST_HOUR} (7 AM) and ${LAST_HOUR} (11 PM)` }, { status: 400 });
+    }
 
     const date = new Date(bookingDate);
+    if (isNaN(date.getTime())) {
+      return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+    }
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -127,8 +141,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingBookings >= MAX_SLOTS_PER_HOUR) {
-      // Find next available slot
-      for (let h = bookingHour + 1; h <= 23; h++) {
+      // Find next available slot (within 7 AM–11 PM)
+      for (let h = Math.max(bookingHour + 1, FIRST_HOUR); h <= LAST_HOUR; h++) {
         const count = await prisma.booking.count({
           where: {
             bookingDate: {
@@ -143,13 +157,11 @@ export async function POST(request: NextRequest) {
         });
 
         if (count < MAX_SLOTS_PER_HOUR) {
-          const displayHour = h > 12 ? h - 12 : h === 0 ? 12 : h;
-          const ampm = h >= 12 ? 'PM' : 'AM';
           return NextResponse.json({
             error: 'Slot not available',
             nextAvailable: {
               hour: h,
-              display: `${displayHour}:00 ${ampm}`,
+              display: formatHourDisplay(h),
             },
           }, { status: 409 });
         }

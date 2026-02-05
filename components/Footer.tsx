@@ -18,7 +18,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 max-w-sm">
-              Your trusted partner for rides, deliveries, and errands in Nassau, Bahamas. Fast, reliable, and always on time.
+              Trusted partner for pickups and deliveries in Nassau, Bahamas. Safe, reliable, and always on time.
             </p>
           </div>
 
@@ -39,6 +39,11 @@ export default function Footer() {
               <li>
                 <Link href="/services" className="text-gray-400 hover:text-white transition-colors">
                   Services & Pricing
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="text-gray-400 hover:text-white transition-colors">
+                  Careers
                 </Link>
               </li>
             </ul>
@@ -67,7 +72,7 @@ export default function Footer() {
                 <svg className="w-5 h-5 text-golden-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-gray-400">6AM - 11:45PM Daily</span>
+                <span className="text-gray-400">7AM – 11PM Daily (after-hours: +$10 fee)</span>
               </li>
             </ul>
           </div>

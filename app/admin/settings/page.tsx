@@ -4,24 +4,16 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { FareSettings } from '@/lib/fareCalculation';
 
-interface FareSettings {
+interface AdminFareSettings extends FareSettings {
   id: number;
-  rideStandardBase: number;
-  ridePremiumBase: number;
-  freeDistance: number;
-  perMileRate: number;
-  passengerFee: number;
-  courierBase: number;
-  errandBase: number;
-  shoppingBase: number;
-  transportBase: number;
 }
 
 export default function AdminSettingsPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [settings, setSettings] = useState<FareSettings | null>(null);
+  const [settings, setSettings] = useState<AdminFareSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -78,7 +70,7 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const updateSetting = (key: keyof FareSettings, value: number) => {
+  const updateSetting = (key: keyof AdminFareSettings, value: number) => {
     if (settings) {
       setSettings({ ...settings, [key]: value });
     }
@@ -154,7 +146,7 @@ export default function AdminSettingsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Premium Base Fare ($)
+                  Private driver base ($)
                 </label>
                 <input
                   type="number"

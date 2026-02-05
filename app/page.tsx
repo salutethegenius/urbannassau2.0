@@ -26,7 +26,7 @@ export default async function HomePage() {
               </h1>
               
               <p className="text-xl md:text-2xl text-brand-black/80 mb-10 max-w-xl">
-                Rides, deliveries, and errands across Nassau. Fast, reliable, and always on time.
+                Pick Up&apos;s, deliveries, and errands across Nassau. Safe, always on time, affordable.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
@@ -62,37 +62,52 @@ export default async function HomePage() {
             <h2 className="text-4xl md:text-5xl font-black text-brand-black mb-4">
               What we do
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              More than just rides — we&apos;re your personal logistics partner in Nassau.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-2">
+              We do more than just pickups.
+            </p>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-medium">
+              Trusted partner for pickups and deliveries.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Rides Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Pick up and drop off */}
             <div className="card group">
               <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mb-5">
                 <svg className="w-7 h-7 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-brand-black mb-2">Rides</h3>
-              <p className="text-gray-600 mb-4">Safe, comfortable rides anywhere in Nassau.</p>
-              <p className="text-2xl font-black text-brand-black">From ${settings?.rideStandardBase || 15}</p>
+              <h3 className="text-xl font-bold text-brand-black mb-2">Pick up and drop off</h3>
+              <p className="text-gray-600 mb-4">Safe pick up and drop offs anywhere, starting from $18.</p>
+              <p className="text-2xl font-black text-brand-black">From $18</p>
             </div>
 
-            {/* Courier Card */}
+            {/* Package delivery */}
             <div className="card group">
               <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mb-5">
                 <svg className="w-7 h-7 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-brand-black mb-2">Courier</h3>
-              <p className="text-gray-600 mb-4">Fast package and document delivery.</p>
-              <p className="text-2xl font-black text-brand-black">From ${settings?.courierBase || 12}</p>
+              <h3 className="text-xl font-bold text-brand-black mb-2">Package delivery</h3>
+              <p className="text-gray-600 mb-4">Secure package delivery, $25 from the boat.</p>
+              <p className="text-2xl font-black text-brand-black">$25 from the boat</p>
             </div>
 
-            {/* Errands Card */}
+            {/* Food delivery */}
+            <div className="card group">
+              <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mb-5">
+                <svg className="w-7 h-7 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-brand-black mb-2">Food delivery</h3>
+              <p className="text-gray-600 mb-4">Food delivery starting from $18.</p>
+              <p className="text-2xl font-black text-brand-black">From $18</p>
+            </div>
+
+            {/* Errands */}
             <div className="card group">
               <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mb-5">
                 <svg className="w-7 h-7 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,20 +115,20 @@ export default async function HomePage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-brand-black mb-2">Errands</h3>
-              <p className="text-gray-600 mb-4">We handle your to-do list for you.</p>
-              <p className="text-2xl font-black text-brand-black">From ${settings?.errandBase || 25}</p>
+              <p className="text-gray-600 mb-4">Errands starting from $28.</p>
+              <p className="text-2xl font-black text-brand-black">From $28</p>
             </div>
 
-            {/* Shopping Card */}
+            {/* Personal grocery shopping */}
             <div className="card group">
               <div className="w-14 h-14 bg-golden-500 rounded-xl flex items-center justify-center mb-5">
                 <svg className="w-7 h-7 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-brand-black mb-2">Shopping</h3>
-              <p className="text-gray-600 mb-4">Personal shopping delivered to your door.</p>
-              <p className="text-2xl font-black text-brand-black">From ${settings?.shoppingBase || 50}</p>
+              <h3 className="text-xl font-bold text-brand-black mb-2">Personal grocery shopping</h3>
+              <p className="text-gray-600 mb-4">Personal grocery shopping, $99.</p>
+              <p className="text-2xl font-black text-brand-black">$99</p>
             </div>
           </div>
 
@@ -190,12 +205,9 @@ export default async function HomePage() {
             <Link href="/calculator" className="btn-secondary text-xl">
               Get a Quote
             </Link>
-            <a href="tel:+12428072353" className="btn-white text-xl flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              Call (242) 807-2353
-            </a>
+            <Link href="/careers" className="btn-white text-xl text-center">
+              Driver Apply
+            </Link>
           </div>
         </div>
       </section>
@@ -203,13 +215,18 @@ export default async function HomePage() {
       {/* Hours Banner */}
       <section className="bg-golden-500 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-brand-black">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-brand-black">
+            <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-lg font-bold text-center">
-              Open Daily: 6:00 AM – 11:45 PM • Nassau, Bahamas 🇧🇸
-            </p>
+            <div className="flex flex-col items-center text-center">
+              <p className="text-lg font-bold">
+                Open daily, 7am to 11pm • Nassau, Bahamas 🇧🇸
+              </p>
+              <p className="text-sm font-medium opacity-90">
+                Before 7am or after 11pm, additional $10 fee.
+              </p>
+            </div>
           </div>
         </div>
       </section>

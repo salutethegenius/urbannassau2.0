@@ -87,6 +87,7 @@ app/
 ├── page.tsx                 # Home page
 ├── calculator/page.tsx      # Ride fare calculator
 ├── services/page.tsx        # Services & pricing
+├── careers/page.tsx        # Driver apply / careers
 ├── admin/
 │   ├── page.tsx            # Admin dashboard
 │   ├── login/page.tsx      # Admin login
@@ -101,13 +102,16 @@ components/
 ├── Footer.tsx              # Site footer
 ├── MapPicker.tsx           # Google Maps picker
 ├── FareCalculator.tsx      # Fare calculator UI
-├── ServiceCard.tsx         # Service card component
 └── WhatsAppButton.tsx      # WhatsApp integration
 
 lib/
 ├── prisma.ts               # Prisma client
 ├── auth.ts                 # NextAuth configuration
 └── fareCalculation.ts      # Fare calculation logic
+
+types/
+├── map.ts                  # Shared Location type
+└── next-auth.d.ts          # NextAuth session types
 ```
 
 ## Fare Calculation

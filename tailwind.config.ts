@@ -29,6 +29,19 @@ const config: Config = {
           white: '#FFFFFF',
           gray: '#F5F5F5',      // Light gray for backgrounds
         },
+        turquoise: {
+          50: '#E6FAFA',
+          100: '#CCF5F5',
+          200: '#99EBEB',
+          300: '#66E0E0',
+          400: '#33D6D6',
+          500: '#00CCCC',      // Admin accent
+          600: '#00A3A3',
+          700: '#007A7A',
+          800: '#005252',
+          900: '#002929',
+        },
+        'bahamian-gold': '#CC9300',  // Admin secondary (darker golden)
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
