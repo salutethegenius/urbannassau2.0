@@ -462,9 +462,6 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
       <p className="text-sm text-gray-500 text-center">
         💡 Type an address or tap the map to set your pickup and dropoff points
       </p>
-      <p className="text-xs text-gray-400 text-center">
-        Map not loading? In Google Cloud Console, add this site’s URL (e.g. <code className="bg-gray-100 px-0.5 rounded">http://localhost:3002/*</code>) to your API key’s HTTP referrer list and enable Maps JavaScript API + Places API.
-      </p>
 
       {/* Clear Button */}
       {(pickup || dropoff) && (
