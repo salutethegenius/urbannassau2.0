@@ -5,6 +5,10 @@ const MAX_SLOTS_PER_HOUR = 2;
 const MIN_HOURS_AHEAD = 1;
 const FIRST_HOUR = 7;   // 7 AM
 const LAST_HOUR = 23;   // 11 PM
+const MAX_DAYS_AHEAD = 60;
+const MAX_ADDRESS_LENGTH = 500;
+const MAX_SERVICE_TYPE_LENGTH = 100;
+const MAX_PHONE_LENGTH = 50;
 
 function formatHourDisplay(hour: number): string {
   const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
@@ -87,11 +91,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error checking availability:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ 
-      error: 'Failed to check availability',
-      details: errorMessage 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to check availability' }, { status: 500 });
   }
 }
 
@@ -119,11 +119,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Booking hour must be between ${FIRST_HOUR} (7 AM) and ${LAST_HOUR} (11 PM)` }, { status: 400 });
     }
 
+    // String length limits
+    const pickup = String(pickupAddress).trim();
+    const dropoff = String(dropoffAddress).trim();
+    const service = String(serviceType).trim();
+    if (!pickup || !dropoff || !service) {
+      return NextResponse.json({ error: 'Pickup, dropoff, and service type cannot be empty' }, { status: 400 });
+    }
+    if (pickup.length > MAX_ADDRESS_LENGTH || dropoff.length > MAX_ADDRESS_LENGTH) {
+      return NextResponse.json({ error: 'Addresses too long' }, { status: 400 });
+    }
+    if (service.length > MAX_SERVICE_TYPE_LENGTH) {
+      return NextResponse.json({ error: 'Service type too long' }, { status: 400 });
+    }
+    const phone = customerPhone != null ? String(customerPhone).trim() : null;
+    if (phone && phone.length > MAX_PHONE_LENGTH) {
+      return NextResponse.json({ error: 'Phone number too long' }, { status: 400 });
+    }
+
+    // Numeric validation
+    const dist = typeof distance === 'number' ? distance : 0;
+    const pax = typeof passengers === 'number' && Number.isInteger(passengers) ? passengers : 1;
+    const fare = typeof totalFare === 'number' ? totalFare : 0;
+    if (dist < 0 || dist > 500) {
+      return NextResponse.json({ error: 'Invalid distance' }, { status: 400 });
+    }
+    if (pax < 1 || pax > 6) {
+      return NextResponse.json({ error: 'Passengers must be 1–6' }, { status: 400 });
+    }
+    if (fare < 0 || fare > 10000) {
+      return NextResponse.json({ error: 'Invalid fare amount' }, { status: 400 });
+    }
+
     const dateParts = String(bookingDate).split('T')[0].split('-').map(Number);
     const date = dateParts.length === 3 ? new Date(dateParts[0], dateParts[1] - 1, dateParts[2]) : new Date(bookingDate);
     if (isNaN(date.getTime())) {
       return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
     }
+
+    // Reject bookings more than 60 days in the future
+    const now = new Date();
+    const maxDate = new Date(now);
+    maxDate.setDate(maxDate.getDate() + MAX_DAYS_AHEAD);
+    if (date > maxDate) {
+      return NextResponse.json({ error: 'Bookings cannot be more than 60 days ahead' }, { status: 400 });
+    }
+
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -176,7 +217,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate booking is at least 1 hour ahead
-    const now = new Date();
     const bookingDateTime = new Date(date);
     bookingDateTime.setHours(bookingHour, 0, 0, 0);
     
@@ -194,13 +234,13 @@ export async function POST(request: NextRequest) {
       data: {
         bookingDate: date,
         bookingHour,
-        serviceType,
-        pickupAddress,
-        dropoffAddress,
-        distance: distance || 0,
-        passengers: passengers || 1,
-        totalFare: totalFare || 0,
-        customerPhone: customerPhone || null,
+        serviceType: service,
+        pickupAddress: pickup,
+        dropoffAddress: dropoff,
+        distance: dist,
+        passengers: pax,
+        totalFare: fare,
+        customerPhone: phone || null,
         status: 'pending',
       },
     });

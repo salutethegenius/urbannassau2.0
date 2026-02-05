@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+const MAX_ADDRESS_LENGTH = 500;
+const MAX_SERVICE_TYPE_LENGTH = 100;
+
 function isValidFareBody(body: unknown): body is Record<string, unknown> & {
   serviceType: string;
   pickupAddress: string;
@@ -17,6 +20,8 @@ function isValidFareBody(body: unknown): body is Record<string, unknown> & {
   if (typeof b.serviceType !== 'string' || !b.serviceType.trim()) return false;
   if (typeof b.pickupAddress !== 'string' || !b.pickupAddress.trim()) return false;
   if (typeof b.dropoffAddress !== 'string' || !b.dropoffAddress.trim()) return false;
+  if (b.serviceType.length > MAX_SERVICE_TYPE_LENGTH) return false;
+  if (b.pickupAddress.length > MAX_ADDRESS_LENGTH || b.dropoffAddress.length > MAX_ADDRESS_LENGTH) return false;
   const v = b.passengers;
   if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || !Number.isInteger(v)) return false;
   const nums = ['distance', 'baseFare', 'distanceFare', 'passengerFare', 'totalFare'] as const;
@@ -61,20 +66,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  try {
-    const fares = await prisma.fareHistory.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-
-    return NextResponse.json(fares);
-  } catch (error) {
-    console.error('Error fetching fares:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch fares' },
-      { status: 500 }
-    );
-  }
-}
 

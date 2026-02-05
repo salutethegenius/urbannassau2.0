@@ -66,3 +66,7 @@ Default credentials (change after first login):
 
 - `railway.json` – Explicit build/start config (optional; Railway auto-detects Next.js)
 - `package.json` – Build script already includes Prisma migrate deploy
+
+## Future Security Improvements
+
+- **Login rate limiting**: Admin login has no rate limiting. Consider adding Railway/Vercel rate limiting or an in-memory lockout after failed attempts to mitigate brute-force attacks.

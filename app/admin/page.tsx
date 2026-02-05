@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import AdminBookingsList from '@/components/AdminBookingsList';
 
 async function getStats() {
   const settings = await prisma.fareSettings.findFirst({ where: { id: 1 } });
@@ -14,12 +15,26 @@ async function getStats() {
   const totalRevenue = await prisma.fareHistory.aggregate({
     _sum: { totalFare: true }
   });
+  const pendingBookings = await prisma.booking.count({
+    where: { status: 'pending' },
+  });
+  const bookingsRaw = await prisma.booking.findMany({
+    orderBy: [{ bookingDate: 'asc' }, { bookingHour: 'asc' }],
+    take: 30,
+  });
+  // Sort: pending first, then confirmed, then cancelled
+  const statusOrder: Record<string, number> = { pending: 0, confirmed: 1, completed: 2, cancelled: 3 };
+  const bookings = bookingsRaw.sort(
+    (a, b) => (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4)
+  );
 
   return {
     settings,
     totalFares,
     recentFares,
     totalRevenue: totalRevenue._sum.totalFare || 0,
+    pendingBookings,
+    bookings,
   };
 }
 
@@ -30,7 +45,7 @@ export default async function AdminDashboard() {
     redirect('/admin/login');
   }
 
-  const { settings, totalFares, recentFares, totalRevenue } = await getStats();
+  const { settings, totalFares, recentFares, totalRevenue, pendingBookings, bookings } = await getStats();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,23 +111,29 @@ export default async function AdminDashboard() {
 
           <div className="card">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-bahamian-gold/20 rounded-xl flex items-center justify-center">
-                <svg className="w-7 h-7 text-bahamian-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
+                <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Quick Actions</p>
-                <Link 
-                  href="/admin/settings" 
-                  className="text-turquoise-400 hover:text-turquoise-500 font-medium"
-                >
-                  Edit Fare Settings →
+                <p className="text-sm text-gray-500">Pending Bookings</p>
+                <p className="text-3xl font-bold text-gray-900">{pendingBookings}</p>
+                <Link href="/admin#bookings" className="text-amber-600 hover:text-amber-700 text-sm font-medium">
+                  Review →
                 </Link>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Bookings - approve/deny */}
+        <div id="bookings" className="card mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Bookings (from WhatsApp)</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Customers send booking requests via WhatsApp. Approve to confirm the ride (keeps slot), or Deny to free the slot for others.
+          </p>
+          <AdminBookingsList bookings={bookings} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
