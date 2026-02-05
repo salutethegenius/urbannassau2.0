@@ -1,17 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { prisma } from '@/lib/prisma';
-
-async function getFareSettings() {
-  const settings = await prisma.fareSettings.findFirst({
-    where: { id: 1 }
-  });
-  return settings;
-}
 
 export default async function HomePage() {
-  const settings = await getFareSettings();
-
   return (
     <div>
       {/* Hero Section */}

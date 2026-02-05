@@ -61,30 +61,16 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
     }
   }, [apiKey, loadError]);
 
-  // Show clear error when key is missing so we never render map/autocomplete with empty key
-  if (!apiKey.trim()) {
-    return (
-      <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6">
-        <div className="text-center">
-          <p className="text-amber-800 font-bold text-lg mb-2">Google Maps API key is missing</p>
-          <p className="text-amber-700 text-sm mb-4">
-            Add <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-amber-100 px-1 rounded">.env.local</code> file, then restart the dev server.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if geolocation is available and prompt user
+  // Check if geolocation is available and prompt user (only when API is ready)
   useEffect(() => {
-    if (isLoaded && !hasPrompted && !pickup && 'geolocation' in navigator) {
+    if (isLoaded && apiKey.trim() && !hasPrompted && !pickup && 'geolocation' in navigator) {
       const timer = setTimeout(() => {
         setShowLocationPrompt(true);
         setHasPrompted(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isLoaded, hasPrompted, pickup]);
+  }, [isLoaded, apiKey, hasPrompted, pickup]);
 
   // Get current location and set as pickup
   const useCurrentLocation = useCallback(() => {
@@ -261,6 +247,20 @@ export default function MapPicker({ onLocationsChange }: MapPickerProps) {
   const onDropoffAutocompleteLoad = useCallback((autocomplete: google.maps.places.Autocomplete) => {
     dropoffInputRef.current = autocomplete;
   }, []);
+
+  // Early returns must come after all hooks
+  if (!apiKey.trim()) {
+    return (
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-6">
+        <div className="text-center">
+          <p className="text-amber-800 font-bold text-lg mb-2">Google Maps API key is missing</p>
+          <p className="text-amber-700 text-sm mb-4">
+            Add <code className="bg-amber-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-amber-100 px-1 rounded">.env.local</code> file, then restart the dev server.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loadError) {
     console.error('Google Maps Load Error:', loadError);

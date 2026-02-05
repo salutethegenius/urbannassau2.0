@@ -1,17 +1,7 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import WhatsAppButton from '@/components/WhatsAppButton';
 
-async function getFareSettings() {
-  const settings = await prisma.fareSettings.findFirst({
-    where: { id: 1 }
-  });
-  return settings;
-}
-
 export default async function ServicesPage() {
-  const settings = await getFareSettings();
-
   const services = [
     {
       title: 'Pick up and drop off',

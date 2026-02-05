@@ -21,7 +21,7 @@ export default function FareCalculator({ settings }: FareCalculatorProps) {
   const [dropoff, setDropoff] = useState<Location | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [passengers, setPassengers] = useState(1);
-  const [serviceType, setServiceType] = useState<ServiceType>('ride-standard');
+  const [serviceType] = useState<ServiceType>('ride-standard');
   const [isSaving, setIsSaving] = useState(false);
 
   // Date & Time
