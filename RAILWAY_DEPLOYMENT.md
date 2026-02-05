@@ -39,10 +39,10 @@ Set in the web service Variables tab:
 ### 4. Build and Deploy
 
 Railway uses:
-- **Build:** `npm run build` (includes `prisma generate`, `prisma migrate deploy`, `next build`)
-- **Start:** `npm start` (runs `next start`)
+- **Build:** `npm run build` (runs `prisma generate` + `next build`)
+- **Start:** `npm start` (runs `prisma migrate deploy` then `next start`)
 
-Migrations run automatically during build.
+Migrations run at startup (not during build—build has no access to Railway's internal DB network).
 
 ### 5. Seed the Database
 
