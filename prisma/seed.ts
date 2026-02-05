@@ -7,20 +7,23 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // Create default fare settings
+  const defaultFareSettings = {
+    rideStandardBase: 18,
+    ridePremiumBase: 20,
+    freeDistance: 5,
+    perMileRate: 4,
+    passengerFee: 5,
+    courierBase: 12,
+    errandBase: 25,
+    shoppingBase: 50,
+    transportBase: 20,
+  };
   const fareSettings = await prisma.fareSettings.upsert({
     where: { id: 1 },
-    update: {},
+    update: defaultFareSettings,
     create: {
       id: 1,
-      rideStandardBase: 18,
-      ridePremiumBase: 20,
-      freeDistance: 5,
-      perMileRate: 4,
-      passengerFee: 5,
-      courierBase: 12,
-      errandBase: 25,
-      shoppingBase: 50,
-      transportBase: 20,
+      ...defaultFareSettings,
     },
   });
 
